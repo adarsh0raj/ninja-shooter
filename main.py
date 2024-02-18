@@ -97,7 +97,12 @@ def main():
     exit_button = Button(WIDTH//2 - 110, HEIGHT//2 + 50, exit_img)
     restart_button = Button(WIDTH//2 - 100, HEIGHT//2 - 50, restart_img)
 
+    #create screen fades
+    intro_fade = ScreenFade(1, BLACK, 4)
+    death_fade = ScreenFade(2, RED, 4)
+
     start_game = False
+    start_intro = False
     run = True
 
     while run:
@@ -107,10 +112,12 @@ def main():
             screen.fill(BACKGROUND)
             if start_button.draw(screen):
                 start_game = True
+                start_intro = True
             if exit_button.draw(screen):
                 run = False
 
         else:
+            intro_fade.fade(screen)
             draw_background(screen, sky_img, mountain_img, pine1_img, pine2_img)
             world.draw(screen)
 
@@ -148,6 +155,12 @@ def main():
             explosion_group.update()
             explosion_group.draw(screen)
 
+            #Intro
+            if start_intro:
+                if intro_fade.fade(screen):
+                    start_intro = False
+                    intro_fade.fade_counter = 0
+
             if player.alive:
                 player.update_action_control(kunai_group, shot_fx)
                 scrolls[0], level_complete = player.move(world.obstacle_list, world.level_length)
@@ -156,6 +169,7 @@ def main():
                 # if player has reached the end of the level
                 if level_complete:
                     level += 1
+                    start_intro = True
                     if level <= 2:
                         scrolls[1] = 0
                         world_data = reset_level()
@@ -184,17 +198,20 @@ def main():
 
             else:
                 scrolls[0] = 0
-                if restart_button.draw(screen):
-                    scrolls[1] = 0
-                    world_data = reset_level()
-                    with open(f"levels/level{level}.csv", newline='') as csvfile:
-                        reader = csv.reader(csvfile, delimiter=',')
-                        for x, row in enumerate(reader):
-                            for y, tile in enumerate(row):
-                                world_data[x][y] = int(tile)
+                if death_fade.fade(screen):
+                    if restart_button.draw(screen):
+                        death_fade.fade_counter = 0
+                        start_intro = True
+                        scrolls[1] = 0
+                        world_data = reset_level()
+                        with open(f"levels/level{level}.csv", newline='') as csvfile:
+                            reader = csv.reader(csvfile, delimiter=',')
+                            for x, row in enumerate(reader):
+                                for y, tile in enumerate(row):
+                                    world_data[x][y] = int(tile)
 
-                    world = World()
-                    player, healthbar = world.process(world_data)
+                        world = World()
+                        player, healthbar = world.process(world_data)
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
