@@ -225,7 +225,7 @@ class Player(pygame.sprite.Sprite):
 
         # Check for exit collision
         level_complete = False
-        if pygame.sprite.spritecollide(self, enemy_group, False):
+        if pygame.sprite.spritecollide(self, exit_group, False):
             level_complete = True
 
         if self.rect.bottom > HEIGHT:
