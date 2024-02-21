@@ -59,6 +59,7 @@ class Player(pygame.sprite.Sprite):
         self.grenade_thrown = False
         self.slide = False
         self.sliding = False
+        self.sword_attack = False
 
     def check_alive(self):
         if self.health <= 0:
@@ -102,7 +103,7 @@ class Player(pygame.sprite.Sprite):
             self.animation_indices[self.action_key] = 0
             self.update_time = pygame.time.get_ticks()
 
-    def update_action_control(self, kunai_group, shot_fx):
+    def update_action_control(self, kunai_group, shot_fx, slash_fx):
         if self.shoot and self.ammo > 0:
             if self.in_air:
                 self.update_action('jump_throw')
@@ -135,6 +136,9 @@ class Player(pygame.sprite.Sprite):
                     self.grenades_no -= 1
                     self.grenade_thrown = True
 
+        elif self.sword_attack and not self.in_air:
+            self.update_action('attack')
+            self.sword_attack_func(slash_fx)
         elif self.in_air:
             self.update_action('jump')
         elif self.sliding and not self.in_air:
@@ -150,6 +154,21 @@ class Player(pygame.sprite.Sprite):
             kunai = Kunai(self.rect.centerx + (self.rect.size[0] * self.direction), self.rect.centery, self.direction)
             kunai_group.add(kunai)
             shot_fx.play()
+
+    def sword_attack_func(self, slash_fx):
+        if self.image == self.cycles['attack'][4]:
+            slash_fx.play()
+
+        elif self.image == self.cycles['attack'][9]:
+            self.sword_attack = False
+            self.update_action('idle')
+
+            for enemy in enemy_group:
+                temp_attack_rectangle = self.rect.copy()
+                temp_attack_rectangle.x += 20 * self.direction
+
+                if temp_attack_rectangle.colliderect(enemy.rect):
+                    enemy.health -= 100
 
     def update(self):
         self.update_animation()
@@ -175,7 +194,7 @@ class Player(pygame.sprite.Sprite):
             self.sliding = True
 
         if self.jump and not self.in_air:
-            self.y_vel = -12
+            self.y_vel = -13
             self.jump = False
             self.in_air = True
 
@@ -206,7 +225,7 @@ class Player(pygame.sprite.Sprite):
 
         # Check for exit collision
         level_complete = False
-        if pygame.sprite.spritecollide(self, exit_group, False):
+        if pygame.sprite.spritecollide(self, enemy_group, False):
             level_complete = True
 
         if self.rect.bottom > HEIGHT:

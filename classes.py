@@ -102,8 +102,6 @@ class Enemy(pygame.sprite.Sprite):
     def update_action_control(self, kunai_group):
         if self.shoot:
             self.shoot_bullet()
-        elif self.in_air:
-            self.update_action('jump')
         elif self.moving_left or self.moving_right:
             self.update_action('run')
         else:
@@ -111,7 +109,7 @@ class Enemy(pygame.sprite.Sprite):
 
     def shoot_bullet(self, bullet_group, shot_fx):
         if self.shoot_cooldown <= 0:
-            self.shoot_cooldown = 60
+            self.shoot_cooldown = 90
             bullet = Bullet(self.rect.centerx + (self.rect.size[0] * self.direction), self.rect.centery, self.direction)
             bullet_group.add(bullet)
             shot_fx.play()
@@ -123,7 +121,6 @@ class Enemy(pygame.sprite.Sprite):
             self.shoot_cooldown -= 1
 
     def move(self, obstacle_list, level_length):
-        screen_scroll = 0
         dx = 0
         dy = 0
 
@@ -166,13 +163,6 @@ class Enemy(pygame.sprite.Sprite):
         self.rect.x += dx
         self.rect.y += dy
 
-        if (self.rect.right > WIDTH-SCROLL_THRESH and scrolls[1] < (level_length * TILE_SIZE) - WIDTH)\
-				or (self.rect.left < SCROLL_THRESH and scrolls[1] > abs(dx)):
-                self.rect.x -= dx
-                screen_scroll = -dx
-
-        return screen_scroll
-
     def ai(self, player, obstacle_list, level_length, shot_fx):
         if self.alive and player.alive:
             if random.randint(1,200) == 1 and not self.idle:
@@ -183,12 +173,11 @@ class Enemy(pygame.sprite.Sprite):
             # IF AI enemy is near the player
             if self.vision.colliderect(player.rect):
                 self.update_action('idle')
-                # self.shoot_bullet(bullet_group)
-                if self.shooting_counter > 0:
-                    self.shooting_counter -= 1
+                if(self.direction == 1):
+                    self.flip = False
                 else:
-                    self.shoot_bullet(bullet_group, shot_fx)
-                    self.shooting_counter = 20
+                    self.flip = True
+                self.shoot_bullet(bullet_group, shot_fx)
             else:
                 if not self.idle:
                     if self.direction == 1:
@@ -446,23 +435,23 @@ class Button():
         return action
 
 class ScreenFade():
-	def __init__(self, direction, colour, speed):
-		self.direction = direction
-		self.colour = colour
-		self.speed = speed
-		self.fade_counter = 0
+    def  __init__(self, direction, colour, speed):
+        self.direction = direction
+        self.colour = colour
+        self.speed = speed
+        self.fade_counter = 0
 
-	def fade(self, screen):
-		fade_complete = False
-		self.fade_counter += self.speed
-		if self.direction == 1:#whole screen fade
-			pygame.draw.rect(screen, self.colour, (0 - self.fade_counter, 0, WIDTH // 2, HEIGHT))
-			pygame.draw.rect(screen, self.colour, (WIDTH // 2 + self.fade_counter, 0, WIDTH, HEIGHT))
-			pygame.draw.rect(screen, self.colour, (0, 0 - self.fade_counter, WIDTH, HEIGHT // 2))
-			pygame.draw.rect(screen, self.colour, (0, HEIGHT // 2 +self.fade_counter, WIDTH, HEIGHT))
-		if self.direction == 2:#vertical screen fade down
-			pygame.draw.rect(screen, self.colour, (0, 0, WIDTH, 0 + self.fade_counter))
-		if self.fade_counter >= WIDTH:
-			fade_complete = True
+    def fade(self, screen):
+        fade_complete = False
+        self.fade_counter += self.speed
+        if self.direction == 1:
+            pygame.draw.rect(screen, self.colour, (0 - self.fade_counter, 0, WIDTH // 2, HEIGHT))
+            pygame.draw.rect(screen, self.colour, (WIDTH // 2 + self.fade_counter, 0, WIDTH, HEIGHT))
+            pygame.draw.rect(screen, self.colour, (0, 0 - self.fade_counter, WIDTH, HEIGHT // 2))
+            pygame.draw.rect(screen, self.colour, (0, HEIGHT // 2 + self.fade_counter, WIDTH, HEIGHT))
+        if self.direction == 2:
+            pygame.draw.rect(screen, self.colour, (0, 0, WIDTH, 0 + self.fade_counter))
+        if self.fade_counter >= HEIGHT:
+            fade_complete = True
 
-		return fade_complete
+        return fade_complete

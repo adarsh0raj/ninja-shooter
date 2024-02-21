@@ -20,3 +20,16 @@ def draw_text(screen, text, x, y, size, color):
     font = pygame.font.SysFont("Futura", size)
     text_surface = font.render(text, False, color)
     screen.blit(text_surface, (x, y))
+
+def draw_controls_text(screen):
+    draw_text(screen, "Press A and D to go left and right", WIDTH//2 - 140, HEIGHT//2 + 200, 25, WHITE)
+    draw_text(screen, "Press SPACE to jump and LEFT CTRL to slide", WIDTH//2 - 190, HEIGHT//2 + 220, 25, WHITE)
+    draw_text(screen, "Press ENTER to shoot Kunai, Q to throw Grenade, E to Sword Attack", WIDTH//2 - 250, HEIGHT//2 + 240, 25, WHITE)
+
+def draw_ammo(screen, player):
+    draw_text(screen, "AMMO: ", 10, 35, 25, WHITE)
+    for i in range(player.ammo):
+        screen.blit(transform_image("images/icons/bullet.png", 1), (75 + (i * 15), 38))
+    draw_text(screen, "GRENADES: ", 10, 55, 25, WHITE)
+    for i in range(player.grenades_no):
+        screen.blit(transform_image("images/icons/grenade.png", 0.8), (115 + (i * 15), 58))
